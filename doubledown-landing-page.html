@@ -1,0 +1,464 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>DoubleDown — Entity Resolution on Snowflake | Deloitte</title>
+<meta name="description" content="DoubleDown, built by Deloitte and powered by Snowflake, helps organizations match and merge fragmented records into trusted, actionable entity data." />
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Open+Sans:ital,wght@0,300;0,400;0,600;0,700;1,400;1,600;1,700&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --dl-green:#86BC25;
+    --dl-neon:#86EB22;
+    --dl-blue:#00A3E0;
+    --dl-blue-dark:#005587;
+    --dl-dark:#282728;
+    --dl-black:#000000;
+    --dl-gray:#E6E6E6;
+    --dl-gray-bg:#F5F5F5;
+    --dl-white:#FFFFFF;
+    --text-1:#282728;
+    --text-2:#5A5B5C;
+    --border:#E6E6E6;
+    --radius:10px;
+    --max:1180px;
+  }
+  *,*::before,*::after{box-sizing:border-box;margin:0;padding:0;}
+  html{scroll-behavior:smooth;}
+  body{
+    font-family:'Open Sans',-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;
+    color:var(--text-1);
+    background:var(--dl-white);
+    line-height:1.6;
+    font-size:16px;
+    -webkit-font-smoothing:antialiased;
+  }
+  img,svg{display:block;max-width:100%;}
+  a{color:inherit;}
+  button{font:inherit;cursor:pointer;}
+  .wrap{max-width:var(--max);margin:0 auto;padding:0 32px;}
+  @media(max-width:640px){.wrap{padding:0 20px;}}
+
+  h1,h2,h3,h4{font-weight:700;line-height:1.18;color:var(--text-1);}
+  .accent{font-style:italic;color:var(--dl-green);font-weight:700;}
+  .dark .accent{color:var(--dl-neon);}
+
+  :focus-visible{outline:3px solid var(--dl-blue);outline-offset:2px;}
+
+  .eyebrow{
+    display:inline-flex;align-items:center;gap:10px;
+    font-size:12.5px;font-weight:700;letter-spacing:.14em;text-transform:uppercase;
+    color:var(--dl-green);margin-bottom:16px;
+  }
+  .eyebrow::before{content:"";width:22px;height:3px;background:var(--dl-green);border-radius:2px;}
+  .dark .eyebrow{color:var(--dl-neon);}
+  .dark .eyebrow::before{background:var(--dl-neon);}
+
+  /* ============ TOP BAR ============ */
+  .topbar{height:4px;background:linear-gradient(90deg,var(--dl-green),var(--dl-neon));}
+
+  /* ============ HEADER ============ */
+  header.site{
+    position:sticky;top:0;z-index:40;
+    background:rgba(255,255,255,.92);
+    backdrop-filter:blur(10px);
+    border-bottom:1px solid var(--border);
+  }
+  .site-inner{
+    max-width:var(--max);margin:0 auto;padding:16px 32px;
+    display:flex;align-items:center;justify-content:space-between;gap:20px;
+  }
+  @media(max-width:640px){.site-inner{padding:14px 20px;}}
+  .logo{display:flex;align-items:baseline;gap:10px;font-size:19px;font-weight:700;white-space:nowrap;}
+  .logo .d{color:var(--text-1);}
+  .logo .name{color:var(--dl-green);font-style:italic;}
+  .logo small{
+    font-size:10.5px;font-weight:600;letter-spacing:.12em;text-transform:uppercase;
+    color:var(--text-2);border-left:1px solid var(--border);padding-left:10px;margin-left:2px;
+  }
+  @media(max-width:560px){.logo small{display:none;}}
+  .btn{
+    display:inline-flex;align-items:center;justify-content:center;gap:8px;
+    font-weight:700;font-size:14px;letter-spacing:.01em;
+    padding:11px 22px;border-radius:999px;border:2px solid transparent;
+    transition:all .18s ease;white-space:nowrap;
+  }
+  .btn-primary{background:var(--dl-green);color:var(--dl-black);}
+  .btn-primary:hover{background:var(--dl-neon);}
+  .btn-outline{border-color:var(--dl-green);color:var(--dl-green);background:transparent;}
+  .btn-outline:hover{background:var(--dl-green);color:var(--dl-black);}
+  .dark .btn-outline{border-color:var(--dl-neon);color:var(--dl-neon);}
+  .dark .btn-outline:hover{background:var(--dl-neon);color:var(--dl-black);}
+  .btn-sm{padding:9px 16px;font-size:13px;}
+
+  /* ============ HERO ============ */
+  .hero{position:relative;overflow:hidden;padding:88px 0 72px;background:var(--dl-gray-bg);}
+  .hero-motif{position:absolute;right:-140px;top:-160px;width:520px;height:520px;opacity:.5;pointer-events:none;}
+  .hero-inner{position:relative;max-width:760px;}
+  .hero h1{font-size:clamp(32px,4.6vw,50px);letter-spacing:-.01em;max-width:16ch;}
+  .hero p.lede{font-size:19px;line-height:1.6;color:var(--text-2);max-width:56ch;margin-top:22px;font-weight:400;}
+  .hero-ctas{display:flex;gap:14px;margin-top:34px;flex-wrap:wrap;}
+  .hero-stats{
+    margin-top:56px;padding-top:28px;border-top:1px solid var(--border);
+    display:grid;grid-template-columns:repeat(4,1fr);gap:24px;
+  }
+  @media(max-width:800px){.hero-stats{grid-template-columns:repeat(2,1fr);}}
+  .hero-stat-label{font-size:11px;font-weight:700;letter-spacing:.1em;text-transform:uppercase;color:var(--text-2);margin-bottom:6px;}
+  .hero-stat-val{font-size:18px;font-weight:700;color:var(--text-1);}
+
+  /* ============ SECTION SHELL ============ */
+  section{padding:80px 0;}
+  @media(max-width:640px){section{padding:56px 0;}}
+  .section-head{max-width:640px;margin-bottom:48px;}
+  .section-head h2{font-size:clamp(26px,3vw,34px);}
+  .section-head p{color:var(--text-2);font-size:16.5px;margin-top:14px;}
+
+  /* ============ DELIVERS CARDS ============ */
+  .cards3{display:grid;grid-template-columns:repeat(3,1fr);gap:24px;}
+  @media(max-width:880px){.cards3{grid-template-columns:1fr;}}
+  .card{
+    background:var(--dl-white);border:1px solid var(--border);border-left:4px solid var(--dl-green);
+    border-radius:var(--radius);padding:28px 26px;
+  }
+  .card h3{font-size:18px;margin-bottom:10px;}
+  .card p{color:var(--text-2);font-size:14.5px;}
+
+  /* ============ FLOW ============ */
+  .flow-wrap{background:var(--dl-gray-bg);}
+  .flow{display:grid;grid-template-columns:repeat(5,1fr);gap:16px;position:relative;}
+  @media(max-width:900px){.flow{grid-template-columns:1fr;gap:0;}}
+  .flow-step{
+    background:var(--dl-white);border:1px solid var(--border);border-radius:var(--radius);
+    padding:24px 18px;position:relative;
+  }
+  @media(max-width:900px){
+    .flow-step{border-radius:0;border-left:4px solid var(--dl-green);border-top:none;border-bottom:none;padding:20px 20px 20px 22px;}
+    .flow-step:first-child{border-top:1px solid var(--border);border-top-left-radius:var(--radius);border-top-right-radius:var(--radius);}
+    .flow-step:last-child{border-bottom:1px solid var(--border);border-bottom-left-radius:var(--radius);border-bottom-right-radius:var(--radius);}
+  }
+  .flow-num{
+    font-size:12px;font-weight:800;color:var(--dl-white);background:var(--dl-green);
+    width:26px;height:26px;border-radius:50%;display:inline-flex;align-items:center;justify-content:center;
+    margin-bottom:14px;
+  }
+  .flow-step h4{font-size:15.5px;margin-bottom:6px;}
+  .flow-step p{font-size:13px;color:var(--text-2);}
+  .flow-arrow{
+    display:none;position:absolute;right:-14px;top:50%;transform:translateY(-50%);
+    color:var(--dl-green);font-size:18px;font-weight:900;z-index:2;
+  }
+  @media(min-width:901px){.flow-step:not(:last-child) .flow-arrow{display:block;}}
+
+  /* ============ STEWARDSHIP (dark) ============ */
+  .dark{background:var(--dl-dark);color:var(--dl-gray);}
+  .dark h2,.dark h3,.dark h4{color:var(--dl-white);}
+  .dark .section-head p{color:#B9B9B9;}
+  .steward-grid{display:grid;grid-template-columns:1fr 1fr;gap:40px;align-items:start;}
+  @media(max-width:880px){.steward-grid{grid-template-columns:1fr;gap:28px;}}
+  .steward-list{list-style:none;display:grid;gap:0;}
+  .steward-list li{
+    display:grid;grid-template-columns:22px 1fr;gap:14px;
+    padding:16px 0;border-bottom:1px solid rgba(255,255,255,.12);
+  }
+  .steward-list li:last-child{border-bottom:0;}
+  .steward-list .chk{color:var(--dl-neon);font-weight:900;}
+  .steward-list h4{font-size:15px;margin-bottom:4px;color:var(--dl-white);}
+  .steward-list p{font-size:13.5px;color:#B9B9B9;}
+  .compliance-card{
+    background:rgba(255,255,255,.05);border:1px solid rgba(255,255,255,.14);
+    border-radius:var(--radius);padding:26px;
+  }
+  .compliance-card h3{font-size:17px;margin-bottom:16px;color:var(--dl-white);}
+  .compliance-card ul{list-style:none;display:grid;gap:10px;}
+  .compliance-card li{
+    font-size:14px;color:#D6D6D6;padding-left:20px;position:relative;
+  }
+  .compliance-card li::before{
+    content:"";position:absolute;left:0;top:8px;width:8px;height:8px;border-radius:50%;
+    background:var(--dl-neon);
+  }
+
+  /* ============ CASE STUDY ============ */
+  .case{
+    background:var(--dl-white);border:1px solid var(--border);border-radius:16px;
+    overflow:hidden;
+  }
+  .case-top{background:var(--dl-green);color:var(--dl-black);padding:22px 32px;font-weight:700;font-size:14px;letter-spacing:.04em;text-transform:uppercase;}
+  .case-body{padding:36px 32px;display:grid;grid-template-columns:repeat(3,1fr);gap:32px;}
+  @media(max-width:880px){.case-body{grid-template-columns:1fr;padding:28px 24px;}}
+  .case-col h4{font-size:12.5px;font-weight:800;letter-spacing:.1em;text-transform:uppercase;color:var(--dl-green);margin-bottom:12px;}
+  .case-col p{font-size:14.5px;color:var(--text-2);}
+
+  /* ============ CTA BAND ============ */
+  .cta-band{
+    background:linear-gradient(120deg,var(--dl-green),var(--dl-neon));
+    color:var(--dl-black);
+    position:relative;overflow:hidden;
+  }
+  .cta-motif{position:absolute;inset:0;width:100%;height:100%;pointer-events:none;}
+  .cta-band-inner{
+    display:flex;align-items:center;justify-content:space-between;gap:24px;flex-wrap:wrap;
+  }
+  .cta-band h2{font-size:clamp(24px,3vw,32px);color:var(--dl-black);max-width:34ch;}
+  .cta-band p{margin-top:8px;color:rgba(0,0,0,.75);font-size:15px;max-width:46ch;}
+  .cta-band .btn-primary{background:var(--dl-black);color:var(--dl-white);}
+  .cta-band .btn-primary:hover{background:#1a1a1a;}
+
+  /* ============ CONTACTS ============ */
+  .contacts{display:grid;grid-template-columns:repeat(3,1fr);gap:20px;}
+  @media(max-width:880px){.contacts{grid-template-columns:1fr;}}
+  .contact-card{
+    border:1px solid var(--border);border-radius:var(--radius);padding:24px;
+    display:flex;flex-direction:column;gap:4px;
+  }
+  .contact-card .role{font-size:12px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:var(--dl-green);margin-bottom:6px;}
+  .contact-card .name{font-size:18px;font-weight:700;}
+  .contact-card .org{font-size:13.5px;color:var(--text-2);margin-bottom:14px;}
+  .contact-card a.mail{
+    font-size:13.5px;font-weight:700;color:var(--dl-blue-dark);text-decoration:none;
+    display:inline-flex;align-items:center;gap:6px;
+  }
+  .contact-card a.mail:hover{text-decoration:underline;}
+
+  /* ============ FOOTER ============ */
+  footer.site{background:var(--dl-dark);color:#B9B9B9;padding:40px 0 28px;}
+  .footer-top{display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:16px;padding-bottom:24px;border-bottom:1px solid rgba(255,255,255,.14);margin-bottom:20px;}
+  .footer-logo{color:var(--dl-white);font-weight:700;font-size:16px;}
+  .footer-logo .name{color:var(--dl-neon);font-style:italic;}
+  .footer-fine{font-size:11.5px;line-height:1.7;color:#8C8C8C;max-width:920px;}
+
+  /* ============ REDUCED MOTION ============ */
+  @media (prefers-reduced-motion:reduce){
+    html{scroll-behavior:auto;}
+    *{transition:none !important;}
+  }
+
+  /* reveal-on-scroll */
+  .reveal{opacity:0;transform:translateY(14px);transition:opacity .5s ease, transform .5s ease;}
+  .reveal.in{opacity:1;transform:translateY(0);}
+</style>
+</head>
+<body>
+
+<div class="topbar" aria-hidden="true"></div>
+
+<header class="site">
+  <div class="site-inner">
+    <div class="logo">
+      <span class="d">Deloitte</span><span class="name">DoubleDown</span>
+      <small>Powered by Snowflake</small>
+    </div>
+    <a class="btn btn-primary btn-sm" href="#contact">Schedule a rapid fit test</a>
+  </div>
+</header>
+
+<!-- ============ HERO ============ -->
+<section class="hero">
+  <svg class="hero-motif" viewBox="0 0 200 200" aria-hidden="true">
+    <circle cx="100" cy="100" r="95" fill="none" stroke="#86BC25" stroke-width="1.4" stroke-dasharray="6 10">
+      <animateTransform attributeName="transform" type="rotate" from="0 100 100" to="360 100 100" dur="40s" repeatCount="indefinite"/>
+    </circle>
+    <circle cx="100" cy="100" r="70" fill="none" stroke="#86EB22" stroke-width="1.4" stroke-dasharray="4 8">
+      <animateTransform attributeName="transform" type="rotate" from="360 100 100" to="0 100 100" dur="30s" repeatCount="indefinite"/>
+    </circle>
+    <circle cx="100" cy="100" r="45" fill="none" stroke="#00A3E0" stroke-width="1.4">
+      <animate attributeName="opacity" values="0.5;1;0.5" dur="6s" repeatCount="indefinite"/>
+    </circle>
+  </svg>
+  <div class="wrap hero-inner">
+    <div class="eyebrow">Entity Resolution · Deloitte + Snowflake</div>
+    <h1>Decision-ready data confidence, <span class="accent">built entity by entity</span></h1>
+    <p class="lede">Organizations are being asked to modernize while supporting programs that depend on fragmented data. DoubleDown, built by Deloitte and powered by Snowflake, helps you match and merge records across sources into one trusted view — with the governance public sector work demands.</p>
+    <div class="hero-ctas">
+      <a class="btn btn-primary" href="#contact">Schedule a rapid fit test</a>
+      <a class="btn btn-outline" href="#flow">See how it works</a>
+    </div>
+    <div class="hero-stats">
+      <div><div class="hero-stat-label">Platform</div><div class="hero-stat-val">Snowflake-native</div></div>
+      <div><div class="hero-stat-label">Entity types</div><div class="hero-stat-val">Person · Provider · Org</div></div>
+      <div><div class="hero-stat-label">Matching</div><div class="hero-stat-val">Deterministic + probabilistic</div></div>
+      <div><div class="hero-stat-label">Get started</div><div class="hero-stat-val">One domain, one or two sources</div></div>
+    </div>
+  </div>
+</section>
+
+<!-- ============ WHAT IT DELIVERS ============ -->
+<section id="delivers">
+  <div class="wrap">
+    <div class="section-head reveal">
+      <div class="eyebrow">What DoubleDown delivers</div>
+      <h2>Turn fragmented records into trusted entity data</h2>
+      <p>DoubleDown applies configurable selection rules — survivorship — to create one trusted, "golden" record for each entity, on a scalable Snowflake foundation for operations, analytics, and downstream workflows.</p>
+    </div>
+    <div class="cards3">
+      <div class="card reveal">
+        <h3>Entity resolution that fits your context</h3>
+        <p>Deterministic and probabilistic matching with survivorship to create trusted golden records.</p>
+      </div>
+      <div class="card reveal">
+        <h3>Confidence you can explain</h3>
+        <p>Stewardship and lineage for defensible match decisions — every merge is traceable back to its source.</p>
+      </div>
+      <div class="card reveal">
+        <h3>A reusable foundation</h3>
+        <p>Onboard new entity sources without restarting the process. Built once, extended repeatedly.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ============ FLOW ============ -->
+<section id="flow" class="flow-wrap">
+  <div class="wrap">
+    <div class="section-head reveal">
+      <div class="eyebrow">How it works</div>
+      <h2>From source data to trusted entities</h2>
+      <p>A flow that leaders can explain and teams can operate.</p>
+    </div>
+    <div class="flow">
+      <div class="flow-step reveal"><div class="flow-num">1</div><h4>Ingest</h4><p>Bring in source data from every system that touches the entity.</p><span class="flow-arrow">→</span></div>
+      <div class="flow-step reveal"><div class="flow-num">2</div><h4>Standardize</h4><p>Validate and normalize records to a common shape.</p><span class="flow-arrow">→</span></div>
+      <div class="flow-step reveal"><div class="flow-num">3</div><h4>Enrich</h4><p>Add context that improves match quality.</p><span class="flow-arrow">→</span></div>
+      <div class="flow-step reveal"><div class="flow-num">4</div><h4>Resolve</h4><p>Match and merge into a single trusted entity.</p><span class="flow-arrow">→</span></div>
+      <div class="flow-step reveal"><div class="flow-num">5</div><h4>Steward</h4><p>Review, remediate, and maintain with full traceability.</p></div>
+    </div>
+  </div>
+</section>
+
+<!-- ============ STEWARDSHIP (dark) ============ -->
+<section class="dark">
+  <div class="wrap">
+    <div class="section-head reveal">
+      <div class="eyebrow">Stewardship</div>
+      <h2>Put stewardship in the business's hands — without losing control</h2>
+      <p>DoubleDown combines automation with human-in-the-loop stewardship so teams can move quickly while maintaining accountability.</p>
+    </div>
+    <div class="steward-grid">
+      <ul class="steward-list reveal">
+        <li><span class="chk">✓</span><span><h4>Search merged records</h4><p>Filter by SSN, name, address, or person ID to find any entity fast.</p></span></li>
+        <li><span class="chk">✓</span><span><h4>Compare and review</h4><p>See records side by side with full survivorship history.</p></span></li>
+        <li><span class="chk">✓</span><span><h4>Merge or unmerge</h4><p>Traceability and rollback support on every decision.</p></span></li>
+      </ul>
+      <div class="compliance-card reveal">
+        <h3>Policy- and compliance-forward matching</h3>
+        <ul>
+          <li>Configurable weighting and matching rules</li>
+          <li>Remediation workflows with audit history</li>
+          <li>Privacy-compliant data access and distribution</li>
+        </ul>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ============ CASE STUDY ============ -->
+<section id="case-study">
+  <div class="wrap">
+    <div class="section-head reveal">
+      <div class="eyebrow">Applied in the field</div>
+      <h2>Public health environments</h2>
+    </div>
+    <div class="case reveal">
+      <div class="case-top">A public health agency · Cross-system entity resolution</div>
+      <div class="case-body">
+        <div class="case-col">
+          <h4>Challenge</h4>
+          <p>The agency needed to connect fragmented data across immunization, patient index, and disease surveillance systems — matching people, providers, and organizations while protecting PII and PHI.</p>
+        </div>
+        <div class="case-col">
+          <h4>Deloitte solution</h4>
+          <p>DoubleDown resolved records through configurable matching, survivorship, and stewardship workflows, with a UI for search, review, merge, and unmerge, plus governance and data-sharing capabilities.</p>
+        </div>
+        <div class="case-col">
+          <h4>Impact</h4>
+          <p>A more trusted cross-system view of key entities, improved interoperability, and stronger data sharing and analytics across authorized stakeholders.</p>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ============ CTA BAND ============ -->
+<section class="cta-band">
+  <svg class="cta-motif" viewBox="0 0 400 160" aria-hidden="true" preserveAspectRatio="xMaxYMid slice">
+    <circle cx="360" cy="30" r="5" fill="#000000" opacity=".12"><animate attributeName="cy" values="30;50;30" dur="5s" repeatCount="indefinite"/></circle>
+    <circle cx="330" cy="90" r="8" fill="#000000" opacity=".10"><animate attributeName="cy" values="90;65;90" dur="7s" repeatCount="indefinite"/></circle>
+    <circle cx="380" cy="120" r="4" fill="#000000" opacity=".14"><animate attributeName="cy" values="120;100;120" dur="4.5s" repeatCount="indefinite"/></circle>
+  </svg>
+  <div class="wrap cta-band-inner">
+    <div>
+      <h2>A practical way to get started</h2>
+      <p>A rapid fit test lets you quickly assess whether DoubleDown is a good fit for your Snowflake environment — one entity domain, one or two source systems, policy-aligned match rules.</p>
+    </div>
+    <a class="btn btn-primary" href="#contact">Schedule a rapid fit test</a>
+  </div>
+</section>
+
+<!-- ============ CONTACT ============ -->
+<section id="contact">
+  <div class="wrap">
+    <div class="section-head reveal">
+      <div class="eyebrow">Get in touch</div>
+      <h2>Talk to the DoubleDown team</h2>
+      <p>Reach out to schedule a rapid fit test or learn more — or email <a href="mailto:doubledown@deloitte.com" style="color:var(--dl-blue-dark);font-weight:700;">doubledown@deloitte.com</a>.</p>
+    </div>
+    <div class="contacts">
+      <div class="contact-card reveal">
+        <div class="role">Snowflake GPS Lead, Alliance Partner</div>
+        <div class="name">Melinda Radlinski</div>
+        <div class="org">Deloitte Consulting LLP</div>
+        <a class="mail" href="mailto:melindaradlinski@deloitte.com">melindaradlinski@deloitte.com →</a>
+      </div>
+      <div class="contact-card reveal">
+        <div class="role">AVP</div>
+        <div class="name">Vipin Gupta</div>
+        <div class="org">Deloitte Consulting LLP</div>
+        <a class="mail" href="mailto:vipgupta@deloitte.com">vipgupta@deloitte.com →</a>
+      </div>
+      <div class="contact-card reveal">
+        <div class="role">Alliances Vice President</div>
+        <div class="name">Brian Manning</div>
+        <div class="org">Deloitte Consulting LLP</div>
+        <a class="mail" href="mailto:brimanning@deloitte.com">brimanning@deloitte.com →</a>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ============ FOOTER ============ -->
+<footer class="site">
+  <div class="wrap">
+    <div class="footer-top">
+      <div class="footer-logo">Deloitte <span class="name">DoubleDown</span></div>
+      <div style="font-size:13px;color:#B9B9B9;">Built entirely on Snowflake</div>
+    </div>
+    <p class="footer-fine">
+      This document contains general information only, and Deloitte is not, by means of this page, rendering accounting, business, financial, investment, legal, tax, or other professional advice or services. This page is not a substitute for such professional advice or services, nor should it be used as a basis for any decision or action that may affect your business. Before making any decision or taking any action that may affect your business, you should consult a qualified professional advisor. Deloitte shall not be responsible for any loss sustained by any person who relies on this page. As used in this page, "Deloitte" means Deloitte Consulting LLP, a subsidiary of Deloitte LLP. Please see www.deloitte.com/us/about for a detailed description of our legal structure. Certain services may not be available to attest clients under the rules and regulations of public accounting. Copyright © 2026 Deloitte Development LLC. All rights reserved.
+    </p>
+  </div>
+</footer>
+
+<script>
+  // Respect reduced-motion for the animated SVG brand motifs (CSS transitions don't stop SMIL <animate>)
+  if (window.matchMedia('(prefers-reduced-motion: reduce)').matches) {
+    document.querySelectorAll('.hero-motif animate, .hero-motif animateTransform, .cta-motif animate')
+      .forEach(el => el.setAttribute('repeatCount', '0'));
+  }
+
+  // Lightweight scroll reveal — respects reduced motion automatically via CSS above
+  const revealEls = document.querySelectorAll('.reveal');
+  if ('IntersectionObserver' in window) {
+    const io = new IntersectionObserver((entries) => {
+      entries.forEach(e => {
+        if (e.isIntersecting) { e.target.classList.add('in'); io.unobserve(e.target); }
+      });
+    }, { threshold: 0.12 });
+    revealEls.forEach(el => io.observe(el));
+  } else {
+    revealEls.forEach(el => el.classList.add('in'));
+  }
+</script>
+</body>
+</html>
